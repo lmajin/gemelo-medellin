@@ -1,0 +1,26 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css"><script src="https://js.arcgis.com/4.31/"></script>
+<style>html,body,#v{margin:0;height:100%;background:#16191b;font:13px Arial,sans-serif;color:#e8e8e8}#p{position:absolute;top:10px;left:10px;width:300px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:rgba(22,25,27,.94);border:1px solid #3a3f42}#p h3{margin:0;padding:10px 12px 4px;font-size:15px}#p small{padding:0 12px 8px;color:#aaa}#q{margin:0 12px 8px;padding:6px;background:#22282b;border:1px solid #444;color:#eee}#l{overflow:auto}.r{padding:7px 12px;border-top:1px solid #2c3134;cursor:pointer;display:flex;gap:8px}.r:hover,.r.on{background:#2e5a4c}.c{width:10px;min-width:10px;border-radius:2px}.r b{font-size:12px}.r span{display:block;color:#aaa;font-size:11px}</style></head>
+<body><div id="v"></div><div id="p"><h3 id="t">Transporte público</h3><small id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div>
+<script>
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic"],function(Map,MapView,FL,GL,G){
+var U="https://arcgis.esri.co/server/rest/services/Hosted/GDM_Transporte_GTFS/FeatureServer/",
+PAL=["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#42d4f4","#f032e6","#bfef45","#fabed4","#469990","#dcbeff","#9A6324","#fffac8","#aaffc3","#ffd8b1"],
+rut=new FL({url:U+"1",outFields:["*"],opacity:.45,renderer:{type:"simple",symbol:{type:"simple-line",color:[120,150,175],width:.8}}}),
+par=new FL({url:U+"0",outFields:["*"],renderer:{type:"simple",symbol:{type:"simple-marker",size:4,color:[235,235,235],outline:{color:[20,20,20],width:.5}}}}),
+gr=new GL(),gp=new GL(),
+v=new MapView({container:"v",map:new Map({basemap:"dark-gray-vector",layers:[rut,gr,par,gp]}),center:[-75.57,6.25],zoom:13,popupEnabled:false}),
+L=document.getElementById("l"),T=document.getElementById("t"),S=document.getElementById("s"),cur=[];
+function col(a,i){return a.color&&a.color.length>3?a.color:PAL[i%PAL.length]}
+function lista(fs,tit,sub){cur=fs;T.textContent=tit;S.textContent=sub;L.innerHTML="";fs.forEach(function(f,i){var a=f.attributes,d=document.createElement("div");d.className="r";d.innerHTML='<div class="c" style="background:'+col(a,i)+'"></div><div><b>'+a.codigo+" · "+a.nombre+"</b><span>"+(a.sistema||"")+(a.empresa?" · "+a.empresa:"")+(a.sentido?" · hacia "+a.sentido:"")+"</span></div>";d.onclick=function(){[].forEach.call(L.children,function(x){x.classList.remove("on")});d.classList.add("on");unaRuta(f,i)};L.appendChild(d)})}
+function pintar(fs,ancho){gr.removeAll();fs.forEach(function(f,i){gr.add(new G({geometry:f.geometry,symbol:{type:"simple-line",color:col(f.attributes,i),width:ancho||3.5}}))})}
+function marcarParada(g){gp.removeAll();if(g)gp.add(new G({geometry:g,symbol:{type:"simple-marker",size:13,color:[255,255,255,0],outline:{color:[0,229,255],width:3}}}))}
+function porClaves(keys,tit,sub,geo){if(!keys.length){lista([],tit,"Sin rutas asociadas.");gr.removeAll();return}
+rut.queryFeatures({where:"route_key IN ('"+keys.join("','")+"')",outFields:["*"],returnGeometry:true}).then(function(r){var fs=r.features.sort(function(a,b){return a.attributes.codigo<b.attributes.codigo?-1:1});pintar(fs);lista(fs,tit,fs.length+" ruta(s) · "+sub);if(!geo)v.goTo(fs.map(function(f){return f.geometry}))})}
+function unaRuta(f,i){pintar([f],5);var k=f.attributes.route_key;par.queryFeatures({where:"rutas LIKE '%;"+k+";%'",returnGeometry:true}).then(function(r){gp.removeAll();r.features.forEach(function(s){gp.add(new G({geometry:s.geometry,symbol:{type:"simple-marker",size:7,color:col(f.attributes,i),outline:{color:"#fff",width:1}}}))});S.textContent=f.attributes.codigo+" · "+r.features.length+" paradas"});v.goTo(f.geometry.extent.expand(1.2))}
+v.on("click",function(e){v.hitTest(e,{include:[par,rut]}).then(function(h){var p=h.results.filter(function(x){return x.graphic.layer===par})[0],r=h.results.filter(function(x){return x.graphic.layer===rut})[0];
+if(p){var a=p.graphic.attributes;marcarParada(p.graphic.geometry);porClaves((a.rutas||"").split(";").filter(Boolean),a.nombre||"Parada",a.sistema,true)}
+else if(r){marcarParada();rut.queryFeatures({objectIds:[r.graphic.attributes.OBJECTID],outFields:["*"],returnGeometry:true}).then(function(q){lista(q.features,"Ruta","Clic para ver sus paradas");unaRuta(q.features[0],0);L.firstChild.classList.add("on")})}})});
+var tm;document.getElementById("q").oninput=function(e){clearTimeout(tm);var s=e.target.value.trim().replace(/'/g,"");tm=setTimeout(function(){if(s.length<2)return;rut.queryFeatures({where:"UPPER(codigo) LIKE '%"+s.toUpperCase()+"%' OR UPPER(nombre) LIKE '%"+s.toUpperCase()+"%' OR UPPER(empresa) LIKE '%"+s.toUpperCase()+"%'",outFields:["*"],returnGeometry:true,num:60}).then(function(r){marcarParada();pintar(r.features);lista(r.features,"Búsqueda: "+s,r.features.length+" ruta(s)")})},350)};
+});
+</script></body></html>
