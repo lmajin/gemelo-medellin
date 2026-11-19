@@ -1,26 +1,205 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Movilidad · Gemelo Digital Medellín</title>
 <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css"><script src="https://js.arcgis.com/4.31/"></script>
-<style>html,body,#v{margin:0;height:100%;background:#16191b;font:13px Arial,sans-serif;color:#e8e8e8}#p{position:absolute;top:10px;left:10px;width:300px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:rgba(22,25,27,.94);border:1px solid #3a3f42}#p h3{margin:0;padding:10px 12px 4px;font-size:15px}#p small{padding:0 12px 8px;color:#aaa}#q{margin:0 12px 8px;padding:6px;background:#22282b;border:1px solid #444;color:#eee}#l{overflow:auto}.r{padding:7px 12px;border-top:1px solid #2c3134;cursor:pointer;display:flex;gap:8px}.r:hover,.r.on{background:#2e5a4c}.c{width:10px;min-width:10px;border-radius:2px}.r b{font-size:12px}.r span{display:block;color:#aaa;font-size:11px}</style></head>
-<body><div id="v"></div><div id="p"><h3 id="t">Transporte público</h3><small id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div>
-<script>
-require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic"],function(Map,MapView,FL,GL,G){
-var U="https://arcgis.esri.co/server/rest/services/Hosted/GDM_Transporte_GTFS/FeatureServer/",
+<style>
+html,body,#v{margin:0;height:100%;background:#16191b;font:13px Arial,Helvetica,sans-serif;color:#e8e8e8}
+#p{position:absolute;top:10px;left:10px;width:330px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:rgba(22,25,27,.95);border:1px solid #3a3f42}
+#tabs{display:flex;border-bottom:1px solid #3a3f42}#tabs button{flex:1;padding:9px;background:none;border:0;color:#aaa;cursor:pointer;font:600 13px Arial}#tabs button.on{color:#fff;border-bottom:2px solid #00e5ff}
+.sec{display:none;flex-direction:column;overflow:hidden}.sec.on{display:flex}
+h3{margin:0;padding:10px 12px 2px;font-size:15px}small.s{display:block;padding:0 12px 8px;color:#aaa}
+input,select{box-sizing:border-box;width:100%;padding:7px;background:#22282b;border:1px solid #444;color:#eee;font:13px Arial}
+.campo{position:relative;margin:0 12px 6px;display:flex;gap:4px}.campo .ic{width:22px;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;margin-top:4px}
+.sug{position:absolute;left:26px;right:34px;top:33px;z-index:9;background:#22282b;border:1px solid #555;max-height:220px;overflow:auto;display:none}.sug div{padding:6px 8px;cursor:pointer;border-top:1px solid #333}.sug div:hover{background:#2e5a4c}.sug span{color:#999;font-size:11px}
+.pin{width:30px;min-width:30px;background:#22282b;border:1px solid #444;color:#ccc;cursor:pointer}.pin.on{background:#00e5ff;color:#000}
+.fila{display:flex;gap:6px;margin:0 12px 8px}.fila select{flex:1}.btn{background:#2e5a4c;border:0;color:#fff;padding:8px 12px;cursor:pointer;font:600 13px Arial}
+#res,#l{overflow:auto}.op{padding:9px 12px;border-top:1px solid #2c3134;cursor:pointer}.op:hover,.op.on{background:#26343a}.op b{font-size:14px}.op .chips{margin-top:5px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.chip{padding:1px 6px;border-radius:3px;font:bold 11px Arial;color:#fff}.mini{color:#aaa;font-size:11px}
+.leg{display:flex;gap:8px;padding:6px 12px 6px 14px;border-left:3px solid #555;margin:0 12px 0 16px}.leg div{font-size:12px}.leg span{display:block;color:#aaa;font-size:11px}
+.r{padding:7px 12px;border-top:1px solid #2c3134;cursor:pointer;display:flex;gap:8px}.r:hover,.r.on{background:#2e5a4c}.c{width:10px;min-width:10px;border-radius:2px}.r b{font-size:12px}.r span{display:block;color:#aaa;font-size:11px}
+.av{margin:8px 12px;padding:6px 8px;border:1px solid #444;color:#aaa;font-size:11px}
+</style></head><body><div id="v"></div>
+<div id="p"><div id="tabs"><button class="on" data-t="plan">Planear viaje</button><button data-t="exp">Explorar rutas</button></div>
+<div id="plan" class="sec on"><h3>¿Para dónde va?</h3><small class="s">Escriba una dirección, una estación o un lugar, o marque en el mapa.</small>
+<div class="campo"><div class="ic" style="background:#3cb44b">A</div><input id="o" placeholder="Origen (ej. Universidad Nacional)" autocomplete="off"><button class="pin" id="po" title="Marcar en el mapa">⌖</button><div class="sug" id="so"></div></div>
+<div class="campo"><div class="ic" style="background:#e6194b">B</div><input id="d" placeholder="Destino (ej. Parque Lleras)" autocomplete="off"><button class="pin" id="pd" title="Marcar en el mapa">⌖</button><div class="sug" id="sd"></div></div>
+<div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="btn" id="go">Buscar</button></div>
+<div id="res"></div>
+<div class="av">Tiempos y tarifas ESTIMADOS (tarifas 2026: Metro frecuente $3.820, bus $3.800, integrado Sitva $4.715). Sin horarios en tiempo real. Datos: GTFS ColombiaInfo y GeoMedellín.</div></div>
+<div id="exp" class="sec"><h3 id="t">Transporte público</h3><small class="s" id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" style="margin:0 12px 8px;width:auto" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div></div>
+<script>/* Planificador de viajes · Gemelo Digital Medellín (sin dependencias; se usa en la app y en pruebas) */
+var Planner = (function () {
+  var VEL = { bus: 14, metroplus: 20, metro: 35, cable: 18, tranvia: 15 };     // km/h
+  var ESPERA = { bus: 8, metroplus: 5, metro: 4, cable: 3, tranvia: 5 };        // min
+  var FACT = { bus: 1.25, metroplus: 1.1, metro: 1.05, cable: 1.0, tranvia: 1.1 };
+  var CAMINA = 75, F_CAMINA = 1.3, MAX_ACCESO = 800, MAX_TRANSB = 350, TRANSB = 2;
+  var SISTEMA = { metro: 1, cable: 1, tranvia: 1, metroplus: 1 };
+  var TARIFA = { frecuente: 3820, portador: 4400, estudiante: 1600, mayor: 3330, pcd: 2720 };
+  var BUS = 3800, INTEGRADA = 4715;
+  function dist(a, b) { var dx = (a[0] - b[0]) * 110574 * Math.cos(6.25 * Math.PI / 180), dy = (a[1] - b[1]) * 110574; return Math.sqrt(dx * dx + dy * dy); }
+  function Red(data) {
+    var R = { stops: data.stops, pats: data.pats, porParada: [], grid: {} };
+    R.xy = R.stops.map(function (s) { return [s[2], s[3]]; });
+    R.stops.forEach(function (s, i) { R.porParada[i] = []; var k = Math.floor(s[2] / 0.003) + "_" + Math.floor(s[3] / 0.003); (R.grid[k] = R.grid[k] || []).push(i); });
+    R.pats.forEach(function (p, pi) {
+      p.cum = [0];
+      for (var i = 1; i < p.p.length; i++) p.cum.push(p.cum[i - 1] + dist(R.xy[p.p[i - 1]], R.xy[p.p[i]]) * (FACT[p.m] || 1.2));
+      p.p.forEach(function (s, i) { R.porParada[s].push([pi, i]); });
+    });
+    R.cerca = function (pt, radio) {
+      var out = [], cx = Math.floor(pt[0] / 0.003), cy = Math.floor(pt[1] / 0.003), n = Math.ceil(radio / 330);
+      for (var x = cx - n; x <= cx + n; x++) for (var y = cy - n; y <= cy + n; y++) {
+        var l = R.grid[x + "_" + y]; if (!l) continue;
+        for (var j = 0; j < l.length; j++) { var d = dist(pt, R.xy[l[j]]); if (d <= radio) out.push([l[j], d]); }
+      }
+      return out;
+    };
+    R.vecinos = R.stops.map(function (s, i) { return null; });
+    return R;
+  }
+  function Heap() { this.a = []; }
+  Heap.prototype.push = function (x) { var a = this.a; a.push(x); var i = a.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (a[p][0] <= a[i][0]) break; var t = a[p]; a[p] = a[i]; a[i] = t; i = p; } };
+  Heap.prototype.pop = function () { var a = this.a, top = a[0], last = a.pop(); if (a.length) { a[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < a.length && a[l][0] < a[m][0]) m = l; if (r < a.length && a[r][0] < a[m][0]) m = r; if (m === i) break; var t = a[m]; a[m] = a[i]; a[i] = t; i = m; } } return top; };
+  function buscar(R, o, d, castigo) {
+    castigo = castigo || {};
+    var n = R.stops.length, T = new Float64Array(n).fill(Infinity), prev = new Array(n), viaRide = new Uint8Array(n), h = new Heap();
+    R.cerca(o, MAX_ACCESO).forEach(function (c) { var t = c[1] * F_CAMINA / CAMINA; if (t < T[c[0]]) { T[c[0]] = t; prev[c[0]] = { tipo: "camina", desde: -1, dist: c[1] }; h.push([t, c[0]]); } });
+    var destinos = {}; R.cerca(d, MAX_ACCESO).forEach(function (c) { destinos[c[0]] = c[1]; });
+    var mejor = { t: Infinity, s: -1 };
+    while (h.a.length) {
+      var e = h.pop(), t = e[0], u = e[1];
+      if (t > T[u] || t > mejor.t) continue;
+      if (destinos[u] !== undefined) { var tf = t + destinos[u] * F_CAMINA / CAMINA; if (tf < mejor.t) mejor = { t: tf, s: u }; }
+      var lista = R.porParada[u];
+      for (var q = 0; q < lista.length; q++) {
+        var pi = lista[q][0], i = lista[q][1], p = R.pats[pi];
+        if (prev[u] && prev[u].tipo === "viaje" && prev[u].pat === pi) continue;
+        var base = t + ESPERA[p.m] + (viaRide[u] ? TRANSB : 0) + (castigo[p.k] || 0);
+        for (var j = i + 1; j < p.p.length; j++) {
+          var v = p.p[j], tv = base + (p.cum[j] - p.cum[i]) / (VEL[p.m] * 1000 / 60);
+          if (tv < T[v]) { T[v] = tv; prev[v] = { tipo: "viaje", desde: u, pat: pi, i: i, j: j }; viaRide[v] = 1; h.push([tv, v]); }
+        }
+      }
+      if (viaRide[u]) {
+        var cs = R.cerca(R.xy[u], MAX_TRANSB);
+        for (var k = 0; k < cs.length; k++) {
+          var w = cs[k][0]; if (w === u) continue;
+          var tw = t + cs[k][1] * F_CAMINA / CAMINA;
+          if (tw < T[w]) { T[w] = tw; prev[w] = { tipo: "camina", desde: u, dist: cs[k][1] }; viaRide[w] = 0; h.push([tw, w]); }
+        }
+      }
+    }
+    if (mejor.s < 0) return null;
+    var tramos = [], s = mejor.s;
+    tramos.push({ tipo: "camina", desde: s, hasta: "destino", dist: destinos[s], min: destinos[s] * F_CAMINA / CAMINA });
+    while (s >= 0 && prev[s]) {
+      var pv = prev[s];
+      if (pv.tipo === "viaje") {
+        var P = R.pats[pv.pat];
+        tramos.push({ tipo: "viaje", pat: pv.pat, desde: pv.desde, hasta: s, i: pv.i, j: pv.j, paradas: pv.j - pv.i,
+          dist: P.cum[pv.j] - P.cum[pv.i], min: ESPERA[P.m] + (P.cum[pv.j] - P.cum[pv.i]) / (VEL[P.m] * 1000 / 60) });
+      } else tramos.push({ tipo: "camina", desde: pv.desde, hasta: s, dist: pv.dist, min: pv.dist * F_CAMINA / CAMINA });
+      s = pv.desde;
+    }
+    tramos.reverse();
+    return { min: mejor.t, tramos: tramos };
+  }
+  function tarifa(R, it, usuario) {
+    var sis = TARIFA[usuario] || TARIFA.frecuente, total = 0, enSistema = false, integradaUsada = false, detalle = [];
+    var viajes = it.tramos.filter(function (t) { return t.tipo === "viaje"; }).map(function (t) { return R.pats[t.pat]; });
+    for (var i = 0; i < viajes.length; i++) {
+      var p = viajes[i];
+      if (SISTEMA[p.m]) {
+        if (enSistema) { detalle.push(p.c + ": transbordo sin costo dentro del sistema"); continue; }
+        var antes = viajes[i - 1];
+        if (antes && !SISTEMA[antes.m] && antes.integ && !integradaUsada) { detalle.push(p.c + ": integrado con la ruta anterior"); integradaUsada = true; }
+        else { total += sis; detalle.push(p.c + ": pasaje del sistema $" + sis.toLocaleString("es-CO")); }
+        enSistema = true;
+      } else {
+        enSistema = false;
+        var sig = viajes[i + 1], ant = viajes[i - 1];
+        if (p.integ && !integradaUsada && ((sig && SISTEMA[sig.m]) || (ant && SISTEMA[ant.m]))) {
+          var extra = INTEGRADA - TARIFA.frecuente;
+          if (ant && SISTEMA[ant.m]) { total += extra; detalle.push(p.c + ": integración Sitva +$" + extra.toLocaleString("es-CO")); integradaUsada = true; }
+          else { total += extra + sis; detalle.push(p.c + ": ruta integrada (pasaje integrado $" + (extra + sis).toLocaleString("es-CO") + ")"); }
+        } else { total += BUS; detalle.push(p.c + ": pasaje de bus $" + BUS.toLocaleString("es-CO")); }
+      }
+    }
+    return { total: total, detalle: detalle };
+  }
+  function planear(R, o, d, usuario) {
+    var res = [], castigo = {}, firmas = {};
+    var directo = dist(o, d);
+    for (var k = 0; k < 4 && res.length < 3; k++) {
+      var it = buscar(R, o, d, castigo); if (!it) break;
+      var pats = it.tramos.filter(function (t) { return t.tipo === "viaje"; }).map(function (t) { return R.pats[t.pat].k; });
+      var firma = pats.join(">");
+      pats.forEach(function (pk) { castigo[pk] = (castigo[pk] || 0) + 25; });
+      if (!pats.length || firmas[firma]) continue;
+      firmas[firma] = 1; it.tarifa = tarifa(R, it, usuario); it.transbordos = Math.max(0, pats.length - 1); res.push(it);
+    }
+    res.sort(function (a, b) { return a.min - b.min; });
+    var aPie = directo * F_CAMINA / CAMINA;
+    if (directo < 2000 && (!res.length || aPie < res[0].min + 5)) res.unshift({ min: aPie, aPie: true, tramos: [{ tipo: "camina", desde: -1, hasta: "destino", dist: directo, min: aPie }], tarifa: { total: 0, detalle: [] }, transbordos: 0 });
+    return res.slice(0, 3);
+  }
+  return { Red: Red, planear: planear, dist: dist, TARIFA: TARIFA };
+})();
+
+
+require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Polyline","esri/geometry/Point"],function(Map,MapView,FL,GL,G,Polyline,Point){
+var U="https://arcgis.esri.co/server/rest/services/Hosted/GDM_Transporte_GTFS/FeatureServer/",GEO="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
 PAL=["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#42d4f4","#f032e6","#bfef45","#fabed4","#469990","#dcbeff","#9A6324","#fffac8","#aaffc3","#ffd8b1"],
-rut=new FL({url:U+"1",outFields:["*"],opacity:.45,renderer:{type:"simple",symbol:{type:"simple-line",color:[120,150,175],width:.8}}}),
-par=new FL({url:U+"0",outFields:["*"],renderer:{type:"simple",symbol:{type:"simple-marker",size:4,color:[235,235,235],outline:{color:[20,20,20],width:.5}}}}),
-gr=new GL(),gp=new GL(),
-v=new MapView({container:"v",map:new Map({basemap:"dark-gray-vector",layers:[rut,gr,par,gp]}),center:[-75.57,6.25],zoom:13,popupEnabled:false}),
-L=document.getElementById("l"),T=document.getElementById("t"),S=document.getElementById("s"),cur=[];
+MODO={bus:"Bus",metro:"Metro",metroplus:"Metroplús",cable:"Metrocable",tranvia:"Tranvía"},CMODO={bus:"#f58231",metroplus:"#7ab800",metro:"#0054A4",cable:"#9A681C",tranvia:"#159B4C"},
+rut=new FL({url:U+"1",outFields:["*"],opacity:.35,renderer:{type:"simple",symbol:{type:"simple-line",color:[120,150,175],width:.8}}}),
+par=new FL({url:U+"0",outFields:["*"],minScale:40000,renderer:{type:"simple",symbol:{type:"simple-marker",size:4,color:[235,235,235],outline:{color:[20,20,20],width:.5}}}}),
+gr=new GL(),gp=new GL(),gm=new GL(),
+v=new MapView({container:"v",map:new Map({basemap:"dark-gray-vector",layers:[rut,gr,par,gp,gm]}),center:[-75.57,6.25],zoom:13,popupEnabled:false}),
+$=function(i){return document.getElementById(i)},R=null,pts={o:null,d:null},modoPin=null,res=[];
+fetch("red.json").then(function(r){return r.json()}).then(function(j){R=Planner.Red(j)});
+document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#tabs button,.sec").forEach(function(x){x.classList.remove("on")});b.classList.add("on");$(b.dataset.t).classList.add("on")}});
+function fmt(n){return "$"+Math.round(n).toLocaleString("es-CO")}
 function col(a,i){return a.color&&a.color.length>3?a.color:PAL[i%PAL.length]}
-function lista(fs,tit,sub){cur=fs;T.textContent=tit;S.textContent=sub;L.innerHTML="";fs.forEach(function(f,i){var a=f.attributes,d=document.createElement("div");d.className="r";d.innerHTML='<div class="c" style="background:'+col(a,i)+'"></div><div><b>'+a.codigo+" · "+a.nombre+"</b><span>"+(a.sistema||"")+(a.empresa?" · "+a.empresa:"")+(a.sentido?" · hacia "+a.sentido:"")+"</span></div>";d.onclick=function(){[].forEach.call(L.children,function(x){x.classList.remove("on")});d.classList.add("on");unaRuta(f,i)};L.appendChild(d)})}
+function marca(k,xy,txt){pts[k]=xy;$(k).value=txt;gm.graphics.filter(function(g){return g.attributes&&g.attributes.k===k}).forEach(function(g){gm.remove(g)});
+gm.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),attributes:{k:k},symbol:{type:"simple-marker",size:16,color:k==="o"?"#3cb44b":"#e6194b",outline:{color:"#fff",width:2}}}));
+gm.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),attributes:{k:k},symbol:{type:"text",text:k==="o"?"A":"B",color:"#fff",font:{size:9,weight:"bold"}}}))}
+/* sugerencias: estaciones y paradas locales + geocodificador mundial de Esri (búsqueda sin almacenamiento) */
+function sug(k){var inp=$(k),box=$("s"+k),tm;inp.oninput=function(){clearTimeout(tm);var t=inp.value.trim();if(t.length<3){box.style.display="none";return}tm=setTimeout(function(){var loc=[];if(R){var tt=t.toLowerCase();R.stops.forEach(function(s,i){if(s[1].toLowerCase().indexOf(tt)>=0&&loc.length<6&&(s[4]===1||loc.length<3))loc.push({t:s[1],sub:s[4]===1?"Estación · Metro de Medellín":"Parada de bus",xy:[s[2],s[3]]})})}
+fetch(GEO+"suggest?f=json&maxSuggestions=6&countryCode=COL&location=-75.57,6.25&searchExtent="+encodeURIComponent(JSON.stringify({xmin:-75.72,ymin:6.12,xmax:-75.43,ymax:6.40,spatialReference:{wkid:4326}}))+"&text="+encodeURIComponent(t+", Medellín")).then(function(r){return r.json()}).catch(function(){return{suggestions:[]}}).then(function(j){
+box.innerHTML="";loc.concat((j.suggestions||[]).map(function(s){return{t:s.text,sub:"Dirección o lugar",mk:s.magicKey}})).forEach(function(o){var d=document.createElement("div");d.innerHTML=o.t+"<br><span>"+o.sub+"</span>";d.onclick=function(){box.style.display="none";if(o.xy){marca(k,o.xy,o.t);plan()}else fetch(GEO+"findAddressCandidates?f=json&outSR=4326&maxLocations=1&magicKey="+o.mk+"&SingleLine="+encodeURIComponent(o.t)).then(function(r){return r.json()}).then(function(c){var x=c.candidates&&c.candidates[0];if(x){marca(k,[x.location.x,x.location.y],o.t);plan()}})};box.appendChild(d)});box.style.display=box.children.length?"block":"none"})},300)}}
+sug("o");sug("d");
+["o","d"].forEach(function(k){$("p"+k).onclick=function(){modoPin=modoPin===k?null:k;$("po").classList.toggle("on",modoPin==="o");$("pd").classList.toggle("on",modoPin==="d")}});
+$("go").onclick=plan;$("u").onchange=plan;
+function plan(){if(!R||!pts.o||!pts.d)return;res=Planner.planear(R,pts.o,pts.d,$("u").value);var box=$("res");box.innerHTML="";
+if(!res.length){box.innerHTML='<div class="op">No se encontró un recorrido con transporte público cerca de estos puntos.</div>';return}
+res.forEach(function(it,k){var d=document.createElement("div");d.className="op";var chips=it.tramos.filter(function(t){return t.tipo==="viaje"}).map(function(t){var p=R.pats[t.pat];return '<span class="chip" style="background:'+(p.col||CMODO[p.m])+'">'+MODO[p.m]+" "+p.c+"</span>"}).join(" › ");
+d.innerHTML="<b>"+Math.round(it.min)+" min</b> · "+fmt(it.tarifa.total)+' <span class="mini">· '+(it.aPie?"solo a pie":it.transbordos+" transbordo(s)")+'</span><div class="chips">'+(chips||'<span class="chip" style="background:#666">A pie</span>')+"</div>";
+d.onclick=function(){[].forEach.call(box.querySelectorAll(".op"),function(x){x.classList.remove("on")});d.classList.add("on");dibujar(it,d)};box.appendChild(d);if(k===0)d.click()})}
+function nombre(i){return i==="destino"?"su destino":(i<0?"el origen":R.stops[i][1])}
+function trozo(p,a,b){var ka=p.k,where="route_key='"+ka+"'";return rut.queryFeatures({where:where,outFields:["*"],returnGeometry:true,outSpatialReference:{wkid:4326}}).then(function(r){var best=null;r.features.forEach(function(f){var vs=[];f.geometry.paths.forEach(function(pa){vs=vs.concat(pa)});var ia=-1,ib=-1,da=1e9,db=1e9;vs.forEach(function(q,i){var x=Planner.dist(q,a),y=Planner.dist(q,b);if(x<da){da=x;ia=i}if(y<db){db=y;ib=i}});if(ia<ib&&da<250&&db<250&&(!best||da+db<best.e))best={e:da+db,v:vs.slice(ia,ib+1)}});return best?best.v:null}).catch(function(){return null})}
+function dibujar(it,box){gr.removeAll();gp.removeAll();var det=document.createElement("div"),ext=[];var prev=box.nextSibling;if(prev&&prev.className==="det")prev.remove();det.className="det";
+var ps=[];it.tramos.forEach(function(t){var a=t.desde<0?pts.o:R.xy[t.desde],b=t.hasta==="destino"?pts.d:R.xy[t.hasta];ext.push(a,b);
+if(t.tipo==="camina"){gr.add(new G({geometry:new Polyline({paths:[[a,b]],spatialReference:{wkid:4326}}),symbol:{type:"simple-line",color:[255,255,255,.9],width:2,style:"short-dot"}}));
+det.innerHTML+='<div class="leg" style="border-color:#888"><div>🚶 Camine '+Math.round(t.dist*1.3)+" m hasta "+nombre(t.hasta)+"<span>"+Math.max(1,Math.round(t.min))+" min</span></div></div>"}
+else{var p=R.pats[t.pat],c=p.col||CMODO[p.m],seq=p.p.slice(t.i,t.j+1).map(function(s){return R.xy[s]});
+seq.forEach(function(q,qi){gp.add(new G({geometry:new Point({longitude:q[0],latitude:q[1]}),symbol:{type:"simple-marker",size:qi===0||qi===seq.length-1?9:5,color:c,outline:{color:"#fff",width:1}}}))});
+var g=new G({geometry:new Polyline({paths:[seq],spatialReference:{wkid:4326}}),symbol:{type:"simple-line",color:c,width:5}});gr.add(g);
+ps.push(trozo(p,a,b).then(function(vs){if(vs&&vs.length>1)g.geometry=new Polyline({paths:[vs],spatialReference:{wkid:4326}})}));
+det.innerHTML+='<div class="leg" style="border-color:'+c+'"><div><b>'+MODO[p.m]+" "+p.c+"</b> · "+p.n+"<span>Suba en "+nombre(t.desde)+" y baje en "+nombre(t.hasta)+" · "+t.paradas+" paradas · "+Math.round(t.min)+" min (incluye espera)"+(p.s?" · sentido "+p.s:"")+"</span></div></div>"}});
+det.innerHTML+='<div class="leg" style="border-color:#555"><div>Tarifa estimada: <b>'+fmt(it.tarifa.total)+"</b><span>"+it.tarifa.detalle.join("<br>")+"</span></div></div>";box.after(det);
+v.goTo(new Polyline({paths:[ext],spatialReference:{wkid:4326}}).extent.expand(1.3))}
+/* ------- explorar rutas (clic en parada o ruta) ------- */
+var L=$("l"),T=$("t"),S=$("s");
+function lista(fs,tit,sub){T.textContent=tit;S.textContent=sub;L.innerHTML="";fs.forEach(function(f,i){var a=f.attributes,d=document.createElement("div");d.className="r";d.innerHTML='<div class="c" style="background:'+col(a,i)+'"></div><div><b>'+a.codigo+" · "+a.nombre+"</b><span>"+(a.sistema||"")+(a.empresa?" · "+a.empresa:"")+(a.sentido?" · hacia "+a.sentido:"")+"</span></div>";d.onclick=function(){[].forEach.call(L.children,function(x){x.classList.remove("on")});d.classList.add("on");unaRuta(f,i)};L.appendChild(d)})}
 function pintar(fs,ancho){gr.removeAll();fs.forEach(function(f,i){gr.add(new G({geometry:f.geometry,symbol:{type:"simple-line",color:col(f.attributes,i),width:ancho||3.5}}))})}
 function marcarParada(g){gp.removeAll();if(g)gp.add(new G({geometry:g,symbol:{type:"simple-marker",size:13,color:[255,255,255,0],outline:{color:[0,229,255],width:3}}}))}
-function porClaves(keys,tit,sub,geo){if(!keys.length){lista([],tit,"Sin rutas asociadas.");gr.removeAll();return}
-rut.queryFeatures({where:"route_key IN ('"+keys.join("','")+"')",outFields:["*"],returnGeometry:true}).then(function(r){var fs=r.features.sort(function(a,b){return a.attributes.codigo<b.attributes.codigo?-1:1});pintar(fs);lista(fs,tit,fs.length+" ruta(s) · "+sub);if(!geo)v.goTo(fs.map(function(f){return f.geometry}))})}
+function porClaves(keys,tit,sub){if(!keys.length){lista([],tit,"Sin rutas asociadas.");gr.removeAll();return}
+rut.queryFeatures({where:"route_key IN ('"+keys.join("','")+"')",outFields:["*"],returnGeometry:true}).then(function(r){var fs=r.features.sort(function(a,b){return a.attributes.codigo<b.attributes.codigo?-1:1});pintar(fs);lista(fs,tit,fs.length+" ruta(s) · "+sub)})}
 function unaRuta(f,i){pintar([f],5);var k=f.attributes.route_key;par.queryFeatures({where:"rutas LIKE '%;"+k+";%'",returnGeometry:true}).then(function(r){gp.removeAll();r.features.forEach(function(s){gp.add(new G({geometry:s.geometry,symbol:{type:"simple-marker",size:7,color:col(f.attributes,i),outline:{color:"#fff",width:1}}}))});S.textContent=f.attributes.codigo+" · "+r.features.length+" paradas"});v.goTo(f.geometry.extent.expand(1.2))}
-v.on("click",function(e){v.hitTest(e,{include:[par,rut]}).then(function(h){var p=h.results.filter(function(x){return x.graphic.layer===par})[0],r=h.results.filter(function(x){return x.graphic.layer===rut})[0];
-if(p){var a=p.graphic.attributes;marcarParada(p.graphic.geometry);porClaves((a.rutas||"").split(";").filter(Boolean),a.nombre||"Parada",a.sistema,true)}
+v.on("click",function(e){if(modoPin){var k=modoPin;modoPin=null;$("po").classList.remove("on");$("pd").classList.remove("on");marca(k,[e.mapPoint.longitude,e.mapPoint.latitude],"Punto marcado en el mapa");plan();return}
+if(!$("exp").classList.contains("on"))return;
+v.hitTest(e,{include:[par,rut]}).then(function(h){var p=h.results.filter(function(x){return x.graphic.layer===par})[0],r=h.results.filter(function(x){return x.graphic.layer===rut})[0];
+if(p){var a=p.graphic.attributes;marcarParada(p.graphic.geometry);porClaves((a.rutas||"").split(";").filter(Boolean),a.nombre||"Parada",a.sistema)}
 else if(r){marcarParada();rut.queryFeatures({objectIds:[r.graphic.getObjectId()],outFields:["*"],returnGeometry:true}).then(function(q){lista(q.features,"Ruta","Clic para ver sus paradas");unaRuta(q.features[0],0);L.firstChild.classList.add("on")})}})});
-var tm;document.getElementById("q").oninput=function(e){clearTimeout(tm);var s=e.target.value.trim().replace(/'/g,"");tm=setTimeout(function(){if(s.length<2)return;rut.queryFeatures({where:"UPPER(codigo) LIKE '%"+s.toUpperCase()+"%' OR UPPER(nombre) LIKE '%"+s.toUpperCase()+"%' OR UPPER(empresa) LIKE '%"+s.toUpperCase()+"%'",outFields:["*"],returnGeometry:true,num:60}).then(function(r){marcarParada();pintar(r.features);lista(r.features,"Búsqueda: "+s,r.features.length+" ruta(s)")})},350)};
+var tm;$("q").oninput=function(e){clearTimeout(tm);var s=e.target.value.trim().replace(/'/g,"");tm=setTimeout(function(){if(s.length<2)return;var S2=s.toUpperCase();rut.queryFeatures({where:"UPPER(codigo) LIKE '%"+S2+"%' OR UPPER(nombre) LIKE '%"+S2+"%' OR UPPER(empresa) LIKE '%"+S2+"%'",outFields:["*"],returnGeometry:true,num:60}).then(function(r){marcarParada();pintar(r.features);lista(r.features,"Búsqueda: "+s,r.features.length+" ruta(s)")})},350)};
 });
 </script></body></html>
