@@ -9,7 +9,7 @@ html,body,#v{margin:0;height:100%;background:#16191b;font:13px Arial,Helvetica,s
 h3{margin:0;padding:10px 12px 2px;font-size:15px}small.s{display:block;padding:0 12px 8px;color:#aaa}
 input,select{box-sizing:border-box;width:100%;padding:7px;background:#22282b;border:1px solid #444;color:#eee;font:13px Arial}
 .campo{position:relative;margin:0 12px 6px;display:flex;gap:4px}.campo .ic{width:22px;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;margin-top:4px}
-.sug{position:absolute;left:26px;right:34px;top:33px;z-index:9;background:#22282b;border:1px solid #555;max-height:220px;overflow:auto;display:none}.sug div{padding:6px 8px;cursor:pointer;border-top:1px solid #333}.sug div:hover{background:#2e5a4c}.sug span{color:#999;font-size:11px}
+.sug{position:absolute;left:26px;right:68px;top:33px;z-index:9;background:#22282b;border:1px solid #555;max-height:220px;overflow:auto;display:none}.sug div{padding:6px 8px;cursor:pointer;border-top:1px solid #333}.sug div:hover{background:#2e5a4c}.sug span{color:#999;font-size:11px}
 .pin{width:30px;min-width:30px;background:#22282b;border:1px solid #444;color:#ccc;cursor:pointer}.pin.on{background:#00e5ff;color:#000}
 .fila{display:flex;gap:6px;margin:0 12px 8px}.fila select{flex:1}.btn{background:#2e5a4c;border:0;color:#fff;padding:8px 12px;cursor:pointer;font:600 13px Arial}
 #res,#l{overflow:auto}.op{padding:9px 12px;border-top:1px solid #2c3134;cursor:pointer}.op:hover,.op.on{background:#26343a}.op b{font-size:14px}.op .chips{margin-top:5px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
@@ -20,9 +20,9 @@ input,select{box-sizing:border-box;width:100%;padding:7px;background:#22282b;bor
 </style></head><body><div id="v"></div>
 <div id="p"><div id="tabs"><button class="on" data-t="plan">Planear viaje</button><button data-t="exp">Explorar rutas</button></div>
 <div id="plan" class="sec on"><h3>¿Para dónde va?</h3><small class="s">Escriba una dirección, una estación o un lugar, o marque en el mapa.</small>
-<div class="campo"><div class="ic" style="background:#3cb44b">A</div><input id="o" placeholder="Origen (ej. Universidad Nacional)" autocomplete="off"><button class="pin" id="po" title="Marcar en el mapa">⌖</button><div class="sug" id="so"></div></div>
-<div class="campo"><div class="ic" style="background:#e6194b">B</div><input id="d" placeholder="Destino (ej. Parque Lleras)" autocomplete="off"><button class="pin" id="pd" title="Marcar en el mapa">⌖</button><div class="sug" id="sd"></div></div>
-<div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="btn" id="go">Buscar</button></div>
+<div class="campo"><div class="ic" style="background:#3cb44b">A</div><input id="o" placeholder="Origen (ej. Universidad Nacional)" autocomplete="off"><button class="pin" id="go_o" title="Usar mi ubicación">◎</button><button class="pin" id="po" title="Marcar en el mapa">⌖</button><div class="sug" id="so"></div></div>
+<div class="campo"><div class="ic" style="background:#e6194b">B</div><input id="d" placeholder="Destino (ej. Parque Lleras)" autocomplete="off"><button class="pin" id="go_d" title="Usar mi ubicación">◎</button><button class="pin" id="pd" title="Marcar en el mapa">⌖</button><div class="sug" id="sd"></div></div>
+<div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="pin" id="sw" title="Intercambiar origen y destino" style="width:34px">⇅</button><button class="btn" id="go">Buscar</button></div><div id="msg" class="mini" style="margin:0 12px 6px"></div>
 <div id="res"></div>
 <div class="av">Tiempos y tarifas ESTIMADOS (tarifas 2026: Metro frecuente $3.820, bus $3.800, integrado Sitva $4.715). Sin horarios en tiempo real. Datos: GTFS ColombiaInfo y GeoMedellín.</div></div>
 <div id="exp" class="sec"><h3 id="t">Transporte público</h3><small class="s" id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" style="margin:0 12px 8px;width:auto" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div></div>
@@ -169,6 +169,13 @@ box.innerHTML="";loc.concat((j.suggestions||[]).map(function(s){return{t:s.text,
 sug("o");sug("d");
 ["o","d"].forEach(function(k){$("p"+k).onclick=function(){modoPin=modoPin===k?null:k;$("po").classList.toggle("on",modoPin==="o");$("pd").classList.toggle("on",modoPin==="d")}});
 $("go").onclick=plan;$("u").onchange=plan;
+function miUbicacion(k){var m=$("msg");if(!navigator.geolocation){m.textContent="Este navegador no permite conocer la ubicación.";return}
+m.textContent="Buscando su ubicación…";navigator.geolocation.getCurrentPosition(function(pos){var xy=[pos.coords.longitude,pos.coords.latitude];
+if(Planner.dist(xy,[-75.57,6.25])>40000){m.textContent="Su ubicación está fuera del Valle de Aburrá; márquela en el mapa o escriba una dirección.";return}
+m.textContent="Ubicación encontrada (precisión ±"+Math.round(pos.coords.accuracy)+" m).";marca(k,xy,"Mi ubicación");v.goTo({center:xy,zoom:15});plan()},
+function(e){m.textContent=e.code===1?"Permiso de ubicación denegado. Actívelo en el candado de la barra de direcciones del navegador.":"No se pudo obtener la ubicación ("+e.message+")."},{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}
+$("go_o").onclick=function(){miUbicacion("o")};$("go_d").onclick=function(){miUbicacion("d")};
+$("sw").onclick=function(){var a=pts.o,b=pts.d,ta=$("o").value,tb=$("d").value;gm.removeAll();pts.o=pts.d=null;if(b)marca("o",b,tb);if(a)marca("d",a,ta);plan()};
 function plan(){if(!R||!pts.o||!pts.d)return;res=Planner.planear(R,pts.o,pts.d,$("u").value);var box=$("res");box.innerHTML="";
 if(!res.length){box.innerHTML='<div class="op">No se encontró un recorrido con transporte público cerca de estos puntos.</div>';return}
 res.forEach(function(it,k){var d=document.createElement("div");d.className="op";var chips=it.tramos.filter(function(t){return t.tipo==="viaje"}).map(function(t){var p=R.pats[t.pat];return '<span class="chip" style="background:'+(p.col||CMODO[p.m])+'">'+MODO[p.m]+" "+p.c+"</span>"}).join(" › ");
