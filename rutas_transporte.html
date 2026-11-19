@@ -28,7 +28,7 @@ input,select{box-sizing:border-box;width:100%;padding:7px;background:var(--bg2);
 #aviso{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;background:var(--bg);border:1px solid var(--li);padding:8px 12px;display:none;max-width:420px}
 </style></head><body>
 <div id="v" class="vw"></div>
-<div id="tool"><button id="tema_b" title="Modo claro u oscuro">☾</button><button id="b3d" title="Vista 3D">3D</button><button id="peg" title="Arrastre el muñeco a una calle para verla a nivel de calle (o haga clic y luego clic en el mapa)">🚶</button><a id="full" href="" target="_blank" title="Abrir en pantalla completa">⤢</a></div>
+<div id="tool"><button id="tema_b" title="Modo claro u oscuro">☾</button><button id="b3d" title="Vista 3D">3D</button><button id="peg" title="Arrastre el muñeco a una calle para verla a nivel de calle (o haga clic y luego clic en el mapa)">🚶</button><button id="reset" title="Restablecer todo">⟲</button><a id="full" href="" target="_blank" title="Abrir en pantalla completa">⤢</a></div>
 <div id="fant">🚶</div><div id="aviso"></div>
 <div id="p"><div id="bus"><input id="qb" placeholder="Buscar dirección, barrio, predio (CBML) o estación" autocomplete="off"><div class="sug" id="sb"></div></div>
 <div id="tabs"><button class="on" data-t="plan">Planear viaje</button><button data-t="exp">Explorar rutas</button></div>
@@ -38,7 +38,7 @@ input,select{box-sizing:border-box;width:100%;padding:7px;background:var(--bg2);
 <div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="pin" id="sw" title="Intercambiar origen y destino" style="width:34px">⇅</button><button class="btn" id="go">Buscar</button></div>
 <div id="res"></div>
 <div class="av">Tiempos y tarifas ESTIMADOS (2026: Metro frecuente $3.820, bus $3.800, integrado Sitva $4.715). Sin horarios en tiempo real. Datos: GTFS ColombiaInfo y GeoMedellín.</div></div>
-<div id="exp" class="sec"><div class="fila" style="margin-top:8px"><button class="btn" id="cerca_b" style="flex:1">📍 Paradas cerca de mí (300 m)</button></div>
+<div id="exp" class="sec"><div class="fila" style="margin-top:8px;align-items:center"><button class="btn" id="cerca_b" style="flex:1">📍 Paradas cerca de mí</button><input id="radio" type="number" min="50" max="3000" step="50" value="300" style="width:78px" title="Distancia de búsqueda en metros"><span class="mini">m</span></div>
 <h3 id="t">Transporte público</h3><small class="s" id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" style="margin:0 12px 8px;width:auto" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div></div>
 <script>/* Planificador de viajes · Gemelo Digital Medellín (sin dependencias; se usa en la app y en pruebas) */
 var Planner = (function () {
@@ -256,14 +256,21 @@ function porClaves(keys,tit,sub){if(!keys.length){lista([],tit,"Sin rutas asocia
 rut.queryFeatures({where:"route_key IN ('"+keys.join("','")+"')",outFields:["*"],returnGeometry:true}).then(function(r){var fs=r.features.sort(function(a,b){return a.attributes.codigo<b.attributes.codigo?-1:1});pintar(fs);lista(fs,tit,fs.length+" ruta(s) · "+sub)})}
 function unaRuta(f,i){pintar([f],5);var k=f.attributes.route_key;par.queryFeatures({where:"rutas LIKE '%;"+k+";%'",returnGeometry:true}).then(function(r){gp.removeAll();r.features.forEach(function(s){gp.add(new G({geometry:s.geometry,symbol:{type:"simple-marker",size:7,color:col(f.attributes,i),outline:{color:"#fff",width:1}}}))});S.textContent=f.attributes.codigo+" · "+r.features.length+" paradas"});V.goTo(f.geometry.extent.expand(1.2)).catch(function(){})}
 function rutasDeParada(i){var ks={};R.porParada[i].forEach(function(q){ks[R.pats[q[0]].k]=1});return Object.keys(ks)}
-function cercanas(xy){if(!R)return;var cs=R.cerca(xy,300).sort(function(a,b){return a[1]-b[1]});gh.removeAll();gr.removeAll();gp.removeAll();
-gh.add(new G({geometry:new Circle({center:new Point({longitude:xy[0],latitude:xy[1]}),radius:300,radiusUnit:"meters",geodesic:true}),symbol:{type:"simple-fill",color:[0,184,212,.1],outline:{color:[0,229,255],width:1.5,style:"dash"}}}));
+function radio(){var r=Math.round(parseFloat($("radio").value));if(!(r>0))r=300;r=Math.min(3000,Math.max(50,r));$("radio").value=r;return r}
+function cercanas(xy){if(!R)return;var RAD=radio(),cs=R.cerca(xy,RAD).sort(function(a,b){return a[1]-b[1]});gh.removeAll();gr.removeAll();gp.removeAll();
+gh.add(new G({geometry:new Circle({center:new Point({longitude:xy[0],latitude:xy[1]}),radius:RAD,radiusUnit:"meters",geodesic:true}),symbol:{type:"simple-fill",color:[0,184,212,.1],outline:{color:[0,229,255],width:1.5,style:"dash"}}}));
 gh.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),symbol:{type:"simple-marker",size:12,color:"#1a73e8",outline:{color:"#fff",width:2}}}));
-V.goTo({center:xy,zoom:16}).catch(function(){});T.textContent="Paradas cerca de usted";S.textContent=cs.length?cs.length+" parada(s) a menos de 300 m · clic para ver sus rutas":"No hay paradas a menos de 300 m.";L.innerHTML="";
+V.goTo({center:xy,zoom:16}).catch(function(){});T.textContent="Paradas cerca de usted";S.textContent=cs.length?cs.length+" parada(s) a menos de "+RAD+" m · clic para ver sus rutas":"No hay paradas a menos de "+RAD+" m. Aumente la distancia.";L.innerHTML="";
 cs.forEach(function(c){var s=R.stops[c[0]],ks=rutasDeParada(c[0]),d=document.createElement("div");d.className="r";
 d.innerHTML='<div class="c" style="background:'+(s[4]===1?"#0054A4":"#f58231")+'"></div><div><b>'+s[1]+"</b><span>"+Math.round(c[1])+" m · "+(s[4]===1?"Estación":"Parada de bus")+" · "+ks.length+" ruta(s): "+ks.map(function(k){return k.split(":")[1].replace("MM-","")}).slice(0,8).join(", ")+"</span></div>";
 d.onclick=function(){var g=new Point({longitude:s[2],latitude:s[3]});marcarParada(g);porClaves(ks,s[1],Math.round(c[1])+" m de usted")};L.appendChild(d)})}
-$("cerca_b").onclick=function(){ubicar(cercanas)};
+$("cerca_b").onclick=function(){ubicar(function(xy){ultimaCerca=xy;cercanas(xy)})};var ultimaCerca=null;
+$("radio").onchange=function(){if(ultimaCerca)cercanas(ultimaCerca)};$("radio").onkeydown=function(e){if(e.key==="Enter")$("radio").onchange()};
+$("reset").onclick=function(){gr.removeAll();gp.removeAll();gm.removeAll();gh.removeAll();pts.o=pts.d=null;res=[];ultimaCerca=null;modoPin=null;modoCalle=false;
+["o","d","qb","q"].forEach(function(k){$(k).value=""});["so","sd","sb"].forEach(function(k){$(k).style.display="none"});$("res").innerHTML="";$("radio").value=300;
+["po","pd","peg"].forEach(function(k){$(k).classList.remove("on")});L.innerHTML="";T.textContent="Transporte público";S.textContent="Haga clic en una parada o en una ruta del mapa.";
+document.querySelectorAll("#tabs button,.sec").forEach(function(x){x.classList.remove("on")});document.querySelector('#tabs button[data-t="plan"]').classList.add("on");$("plan").classList.add("on");
+V.goTo(V===mv?{center:[-75.57,6.25],zoom:13}:{target:[-75.57,6.25],zoom:13,tilt:45}).catch(function(){});aviso("Todo restablecido.",2000)};
 function enganchar(view){view.on("click",function(e){var xy=[e.mapPoint.longitude,e.mapPoint.latitude];
 if(modoCalle){modoCalle=false;peg.classList.remove("on");calle(xy);return}
 if(modoPin){var k=modoPin;modoPin=null;$("po").classList.remove("on");$("pd").classList.remove("on");marca(k,xy,"Punto marcado en el mapa");plan();return}
