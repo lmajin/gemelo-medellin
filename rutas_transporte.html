@@ -1,31 +1,45 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Movilidad · Gemelo Digital Medellín</title>
-<link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css"><script src="https://js.arcgis.com/4.31/"></script>
+<link id="tema" rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/dark/main.css"><script src="https://js.arcgis.com/4.31/"></script>
 <style>
-html,body,#v{margin:0;height:100%;background:#16191b;font:13px Arial,Helvetica,sans-serif;color:#e8e8e8}
-#p{position:absolute;top:10px;left:10px;width:330px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:rgba(22,25,27,.95);border:1px solid #3a3f42}
-#tabs{display:flex;border-bottom:1px solid #3a3f42}#tabs button{flex:1;padding:9px;background:none;border:0;color:#aaa;cursor:pointer;font:600 13px Arial}#tabs button.on{color:#fff;border-bottom:2px solid #00e5ff}
+:root{--bg:rgba(22,25,27,.95);--bg2:#22282b;--tx:#e8e8e8;--mu:#aaa;--li:#3a3f42;--hv:#2e5a4c}
+body.claro{--bg:rgba(255,255,255,.97);--bg2:#f1f3f4;--tx:#1d1d1d;--mu:#5f6368;--li:#d5d8db;--hv:#d9efe9}
+html,body,.vw{margin:0;height:100%;width:100%;background:#16191b;font:13px Arial,Helvetica,sans-serif;color:var(--tx)}
+.vw{position:absolute;top:0;left:0}
+#p{position:absolute;top:10px;left:56px;width:340px;max-height:calc(100% - 40px);display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--li);z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+#tabs{display:flex;border-bottom:1px solid var(--li)}#tabs button{flex:1;padding:9px;background:none;border:0;color:var(--mu);cursor:pointer;font:600 13px Arial}#tabs button.on{color:var(--tx);border-bottom:2px solid #00b8d4}
 .sec{display:none;flex-direction:column;overflow:hidden}.sec.on{display:flex}
-h3{margin:0;padding:10px 12px 2px;font-size:15px}small.s{display:block;padding:0 12px 8px;color:#aaa}
-input,select{box-sizing:border-box;width:100%;padding:7px;background:#22282b;border:1px solid #444;color:#eee;font:13px Arial}
-.campo{position:relative;margin:0 12px 6px;display:flex;gap:4px}.campo .ic{width:22px;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;margin-top:4px}
-.sug{position:absolute;left:26px;right:68px;top:33px;z-index:9;background:#22282b;border:1px solid #555;max-height:220px;overflow:auto;display:none}.sug div{padding:6px 8px;cursor:pointer;border-top:1px solid #333}.sug div:hover{background:#2e5a4c}.sug span{color:#999;font-size:11px}
-.pin{width:30px;min-width:30px;background:#22282b;border:1px solid #444;color:#ccc;cursor:pointer}.pin.on{background:#00e5ff;color:#000}
+h3{margin:0;padding:10px 12px 2px;font-size:15px}small.s{display:block;padding:0 12px 8px;color:var(--mu)}
+input,select{box-sizing:border-box;width:100%;padding:7px;background:var(--bg2);border:1px solid var(--li);color:var(--tx);font:13px Arial}
+.campo{position:relative;margin:0 12px 6px;display:flex;gap:4px}.campo .ic{width:22px;min-width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:bold 11px Arial;margin-top:4px;color:#fff}
+.sug{position:absolute;left:0;right:0;top:33px;z-index:9;background:var(--bg2);border:1px solid var(--li);max-height:260px;overflow:auto;display:none}.sug div{padding:6px 8px;cursor:pointer;border-top:1px solid var(--li)}.sug div:hover{background:var(--hv)}.sug span{color:var(--mu);font-size:11px}
+.pin{width:30px;min-width:30px;background:var(--bg2);border:1px solid var(--li);color:var(--tx);cursor:pointer}.pin.on{background:#00b8d4;color:#000}
 .fila{display:flex;gap:6px;margin:0 12px 8px}.fila select{flex:1}.btn{background:#2e5a4c;border:0;color:#fff;padding:8px 12px;cursor:pointer;font:600 13px Arial}
-#res,#l{overflow:auto}.op{padding:9px 12px;border-top:1px solid #2c3134;cursor:pointer}.op:hover,.op.on{background:#26343a}.op b{font-size:14px}.op .chips{margin-top:5px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
-.chip{padding:1px 6px;border-radius:3px;font:bold 11px Arial;color:#fff}.mini{color:#aaa;font-size:11px}
-.leg{display:flex;gap:8px;padding:6px 12px 6px 14px;border-left:3px solid #555;margin:0 12px 0 16px}.leg div{font-size:12px}.leg span{display:block;color:#aaa;font-size:11px}
-.r{padding:7px 12px;border-top:1px solid #2c3134;cursor:pointer;display:flex;gap:8px}.r:hover,.r.on{background:#2e5a4c}.c{width:10px;min-width:10px;border-radius:2px}.r b{font-size:12px}.r span{display:block;color:#aaa;font-size:11px}
-.av{margin:8px 12px;padding:6px 8px;border:1px solid #444;color:#aaa;font-size:11px}
-</style></head><body><div id="v"></div>
-<div id="p"><div id="tabs"><button class="on" data-t="plan">Planear viaje</button><button data-t="exp">Explorar rutas</button></div>
-<div id="plan" class="sec on"><h3>¿Para dónde va?</h3><small class="s">Escriba una dirección, una estación o un lugar, o marque en el mapa.</small>
-<div class="campo"><div class="ic" style="background:#3cb44b">A</div><input id="o" placeholder="Origen (ej. Universidad Nacional)" autocomplete="off"><button class="pin" id="go_o" title="Usar mi ubicación">◎</button><button class="pin" id="po" title="Marcar en el mapa">⌖</button><div class="sug" id="so"></div></div>
-<div class="campo"><div class="ic" style="background:#e6194b">B</div><input id="d" placeholder="Destino (ej. Parque Lleras)" autocomplete="off"><button class="pin" id="go_d" title="Usar mi ubicación">◎</button><button class="pin" id="pd" title="Marcar en el mapa">⌖</button><div class="sug" id="sd"></div></div>
-<div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="pin" id="sw" title="Intercambiar origen y destino" style="width:34px">⇅</button><button class="btn" id="go">Buscar</button></div><div id="msg" class="mini" style="margin:0 12px 6px"></div>
+#res,#l,#cerca{overflow:auto}.op{padding:9px 12px;border-top:1px solid var(--li);cursor:pointer}.op:hover,.op.on{background:var(--hv)}.op b{font-size:14px}.op .chips{margin-top:5px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.chip{padding:1px 6px;border-radius:3px;font:bold 11px Arial;color:#fff}.mini{color:var(--mu);font-size:11px}
+.leg{display:flex;gap:8px;padding:6px 12px 6px 14px;border-left:3px solid #888;margin:0 12px 0 16px}.leg div{font-size:12px}.leg span{display:block;color:var(--mu);font-size:11px}
+.r{padding:7px 12px;border-top:1px solid var(--li);cursor:pointer;display:flex;gap:8px}.r:hover,.r.on{background:var(--hv)}.c{width:10px;min-width:10px;border-radius:2px}.r b{font-size:12px}.r span{display:block;color:var(--mu);font-size:11px}
+.av{margin:8px 12px;padding:6px 8px;border:1px solid var(--li);color:var(--mu);font-size:11px}
+#bus{margin:8px 12px 6px;position:relative}
+#tool{position:absolute;top:10px;right:10px;z-index:5;display:flex;flex-direction:column;gap:6px}
+#tool button,#tool a{width:36px;height:36px;border-radius:50%;border:1px solid var(--li);background:var(--bg);color:var(--tx);cursor:pointer;font:bold 13px Arial;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+#tool button.on{background:#00b8d4;color:#000}#peg{cursor:grab!important;font-size:18px!important}
+#fant{position:absolute;z-index:20;font-size:26px;pointer-events:none;display:none}
+#aviso{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:6;background:var(--bg);border:1px solid var(--li);padding:8px 12px;display:none;max-width:420px}
+</style></head><body>
+<div id="v" class="vw"></div>
+<div id="tool"><button id="tema_b" title="Modo claro u oscuro">☾</button><button id="b3d" title="Vista 3D">3D</button><button id="peg" title="Arrastre el muñeco a una calle para verla a nivel de calle (o haga clic y luego clic en el mapa)">🚶</button><a id="full" href="" target="_blank" title="Abrir en pantalla completa">⤢</a></div>
+<div id="fant">🚶</div><div id="aviso"></div>
+<div id="p"><div id="bus"><input id="qb" placeholder="Buscar dirección, barrio, predio (CBML) o estación" autocomplete="off"><div class="sug" id="sb"></div></div>
+<div id="tabs"><button class="on" data-t="plan">Planear viaje</button><button data-t="exp">Explorar rutas</button></div>
+<div id="plan" class="sec on"><small class="s" style="padding-top:8px">Escriba un lugar, use su ubicación (◎) o marque en el mapa (⌖).</small>
+<div class="campo"><div class="ic" style="background:#3cb44b">A</div><div style="position:relative;flex:1"><input id="o" placeholder="Origen" autocomplete="off"><div class="sug" id="so"></div></div><button class="pin" id="go_o" title="Usar mi ubicación">◎</button><button class="pin" id="po" title="Marcar en el mapa">⌖</button></div>
+<div class="campo"><div class="ic" style="background:#e6194b">B</div><div style="position:relative;flex:1"><input id="d" placeholder="Destino" autocomplete="off"><div class="sug" id="sd"></div></div><button class="pin" id="go_d" title="Usar mi ubicación">◎</button><button class="pin" id="pd" title="Marcar en el mapa">⌖</button></div>
+<div class="fila"><select id="u"><option value="frecuente">Usuario frecuente (Cívica)</option><option value="portador">Al portador</option><option value="estudiante">Estudiante</option><option value="mayor">Adulto mayor</option><option value="pcd">Persona con discapacidad</option></select><button class="pin" id="sw" title="Intercambiar origen y destino" style="width:34px">⇅</button><button class="btn" id="go">Buscar</button></div>
 <div id="res"></div>
-<div class="av">Tiempos y tarifas ESTIMADOS (tarifas 2026: Metro frecuente $3.820, bus $3.800, integrado Sitva $4.715). Sin horarios en tiempo real. Datos: GTFS ColombiaInfo y GeoMedellín.</div></div>
-<div id="exp" class="sec"><h3 id="t">Transporte público</h3><small class="s" id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" style="margin:0 12px 8px;width:auto" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div></div>
+<div class="av">Tiempos y tarifas ESTIMADOS (2026: Metro frecuente $3.820, bus $3.800, integrado Sitva $4.715). Sin horarios en tiempo real. Datos: GTFS ColombiaInfo y GeoMedellín.</div></div>
+<div id="exp" class="sec"><div class="fila" style="margin-top:8px"><button class="btn" id="cerca_b" style="flex:1">📍 Paradas cerca de mí (300 m)</button></div>
+<h3 id="t">Transporte público</h3><small class="s" id="s">Haga clic en una parada o en una ruta del mapa.</small><input id="q" style="margin:0 12px 8px;width:auto" placeholder="Buscar ruta, código o empresa"><div id="l"></div></div></div>
 <script>/* Planificador de viajes · Gemelo Digital Medellín (sin dependencias; se usa en la app y en pruebas) */
 var Planner = (function () {
   var VEL = { bus: 14, metroplus: 20, metro: 35, cable: 18, tranvia: 15 };     // km/h
@@ -146,67 +160,118 @@ var Planner = (function () {
 })();
 
 
-require(["esri/Map","esri/views/MapView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Polyline","esri/geometry/Point"],function(Map,MapView,FL,GL,G,Polyline,Point){
+require(["esri/Map","esri/views/MapView","esri/views/SceneView","esri/layers/FeatureLayer","esri/layers/GraphicsLayer","esri/Graphic","esri/geometry/Polyline","esri/geometry/Point","esri/geometry/Circle","esri/widgets/Locate"],
+function(Map,MapView,SceneView,FL,GL,G,Polyline,Point,Circle,Locate){
 var U="https://arcgis.esri.co/server/rest/services/Hosted/GDM_Transporte_GTFS/FeatureServer/",GEO="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/",
+MED="https://www.medellin.gov.co/servidormapas/rest/services/",LOTES=MED+"ServiciosCatastro/Base_Catastral/MapServer/3",BARRIOS=MED+"mapas_nacionales/VC_Limite_Politico_Admtivo/MapServer/0",
 PAL=["#e6194b","#3cb44b","#ffe119","#4363d8","#f58231","#42d4f4","#f032e6","#bfef45","#fabed4","#469990","#dcbeff","#9A6324","#fffac8","#aaffc3","#ffd8b1"],
 MODO={bus:"Bus",metro:"Metro",metroplus:"Metroplús",cable:"Metrocable",tranvia:"Tranvía"},CMODO={bus:"#f58231",metroplus:"#7ab800",metro:"#0054A4",cable:"#9A681C",tranvia:"#159B4C"},
-rut=new FL({url:U+"1",outFields:["*"],opacity:.35,renderer:{type:"simple",symbol:{type:"simple-line",color:[120,150,175],width:.8}}}),
-par=new FL({url:U+"0",outFields:["*"],minScale:40000,renderer:{type:"simple",symbol:{type:"simple-marker",size:4,color:[235,235,235],outline:{color:[20,20,20],width:.5}}}}),
-gr=new GL(),gp=new GL(),gm=new GL(),
-v=new MapView({container:"v",map:new Map({basemap:"dark-gray-vector",layers:[rut,gr,par,gp,gm]}),center:[-75.57,6.25],zoom:13,popupEnabled:false}),
-$=function(i){return document.getElementById(i)},R=null,pts={o:null,d:null},modoPin=null,res=[];
+rut=new FL({url:U+"1",outFields:["*"],opacity:.4,elevationInfo:{mode:"on-the-ground"},renderer:{type:"simple",symbol:{type:"simple-line",color:[120,150,175],width:.8}}}),
+par=new FL({url:U+"0",outFields:["*"],minScale:40000,elevationInfo:{mode:"on-the-ground"},renderer:{type:"simple",symbol:{type:"simple-marker",size:4,color:[235,235,235],outline:{color:[20,20,20],width:.5}}}}),
+gr=new GL({elevationInfo:{mode:"on-the-ground"}}),gp=new GL({elevationInfo:{mode:"relative-to-ground"}}),gm=new GL({elevationInfo:{mode:"relative-to-ground"}}),gh=new GL({elevationInfo:{mode:"on-the-ground"}}),
+mapa=new Map({basemap:"dark-gray-vector",ground:"world-elevation",layers:[gh,rut,gr,par,gp,gm]}),
+mv=new MapView({container:"v",map:mapa,center:[-75.57,6.25],zoom:13,popupEnabled:false,ui:{components:["zoom"]}}),sv=null,V=mv,
+$=function(i){return document.getElementById(i)},R=null,pts={o:null,d:null},modoPin=null,modoCalle=false,res=[],ultimaPos=null;
+mv.ui.move("zoom","bottom-right");$("p").style.left="10px";
+$("full").href=location.href;if(window.top===window.self)$("full").style.display="none";
 fetch("red.json").then(function(r){return r.json()}).then(function(j){R=Planner.Red(j)});
+function aviso(t,ms){var a=$("aviso");a.textContent=t;a.style.display=t?"block":"none";clearTimeout(a._t);if(t&&ms)a._t=setTimeout(function(){a.style.display="none"},ms)}
+/* ---------- ubicación ---------- */
+var loc=new Locate({view:mv,useHeadingEnabled:false,goToOverride:function(view,o){o.target.scale=4000;return view.goTo(o.target)}});mv.ui.add(loc,"bottom-right");
+loc.on("locate",function(e){ultimaPos=[e.position.coords.longitude,e.position.coords.latitude]});
+loc.on("locate-error",function(e){errorUbic(e.error)});
+function errorUbic(e){var d=window.top!==window.self;aviso((e&&e.code===1?"Permiso de ubicación denegado. ":"No se pudo obtener la ubicación. ")+(d?"Si está dentro del visor, abra la app en pantalla completa (botón ⤢) y acepte el permiso.":"Actívelo en el candado de la barra de direcciones."),9000)}
+function ubicar(cb){if(!navigator.geolocation){aviso("Este navegador no permite conocer la ubicación.",6000);return}aviso("Buscando su ubicación…");
+navigator.geolocation.getCurrentPosition(function(pos){var xy=[pos.coords.longitude,pos.coords.latitude];ultimaPos=xy;
+if(Planner.dist(xy,[-75.57,6.25])>40000){aviso("Su ubicación está fuera del Valle de Aburrá. Marque un punto en el mapa o escriba una dirección.",8000);return}
+aviso("Ubicación encontrada (precisión ±"+Math.round(pos.coords.accuracy)+" m)",3000);cb(xy)},errorUbic,{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}
+/* ---------- pestañas, tema, 3D ---------- */
 document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#tabs button,.sec").forEach(function(x){x.classList.remove("on")});b.classList.add("on");$(b.dataset.t).classList.add("on")}});
+$("tema_b").onclick=function(){var c=document.body.classList.toggle("claro");$("tema").href="https://js.arcgis.com/4.31/esri/themes/"+(c?"light":"dark")+"/main.css";mapa.basemap=c?"streets-vector":"dark-gray-vector";$("tema_b").textContent=c?"☀":"☾"};
+$("b3d").onclick=function(){if(V===mv){var c=mv.center.clone(),z=mv.zoom;if(!sv){sv=new SceneView({map:mapa,popupEnabled:false,ui:{components:["zoom","navigation-toggle","compass"]},environment:{lighting:{type:"sun",date:new Date("2026-03-21T16:00:00Z")}}});sv.ui.move(["zoom","navigation-toggle","compass"],"bottom-right");
+var l3=new Locate({view:sv,useHeadingEnabled:false});sv.ui.add(l3,"bottom-right");l3.on("locate-error",function(e){errorUbic(e.error)});enganchar(sv)}
+mv.container=null;sv.container="v";V=sv;sv.when(function(){sv.goTo({target:c,zoom:Math.max(z,14),tilt:60}).catch(function(){})});aviso("Vista 3D con relieve. Arrastre con clic derecho para inclinar y girar.",5000)}
+else{var c2=sv.center.clone(),z2=sv.zoom;sv.container=null;mv.container="v";V=mv;mv.goTo({center:c2,zoom:Math.min(Math.max(z2,12),18)}).catch(function(){})}
+$("b3d").classList.toggle("on",V===sv)};
+/* ---------- vista a nivel de calle (Google, sin clave: abre una pestaña) ---------- */
+function calle(xy){gm.graphics.filter(function(g){return g.attributes&&g.attributes.k==="sv"}).forEach(function(g){gm.remove(g)});
+gm.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),attributes:{k:"sv"},symbol:{type:"simple-marker",size:14,color:"#ffb300",outline:{color:"#000",width:1.5}}}));
+window.open("https://www.google.com/maps/@?api=1&map_action=pano&viewpoint="+xy[1].toFixed(6)+","+xy[0].toFixed(6),"vista_calle");aviso("Vista a nivel de calle abierta en otra pestaña (Google Street View).",4000)}
+var peg=$("peg"),fant=$("fant"),arr=false,mov=false;
+peg.addEventListener("pointerdown",function(e){arr=true;mov=false;e.preventDefault()});
+document.addEventListener("pointermove",function(e){if(!arr)return;mov=true;fant.style.display="block";fant.style.left=(e.clientX-12)+"px";fant.style.top=(e.clientY-28)+"px"});
+document.addEventListener("pointerup",function(e){if(!arr)return;arr=false;fant.style.display="none";
+if(!mov){modoCalle=!modoCalle;peg.classList.toggle("on",modoCalle);if(modoCalle)aviso("Haga clic en una calle del mapa para verla a nivel de calle.",5000);return}
+var rc=$("v").getBoundingClientRect(),pt=V.toMap({x:e.clientX-rc.left,y:e.clientY-rc.top});if(pt)calle([pt.longitude,pt.latitude])});
+/* ---------- buscador general ---------- */
 function fmt(n){return "$"+Math.round(n).toLocaleString("es-CO")}
 function col(a,i){return a.color&&a.color.length>3?a.color:PAL[i%PAL.length]}
+function sugerencias(t){var tt=t.toLowerCase(),out=[],ps=[];
+if(/^\d{4,11}$/.test(t))ps.push(fetch(LOTES+"/query?f=json&outFields=cbml,area_lote&returnGeometry=true&outSR=4326&resultRecordCount=6&where="+encodeURIComponent("cbml LIKE '"+t+"%'")).then(function(r){return r.json()}).then(function(j){(j.features||[]).forEach(function(f){out.push({t:"Predio CBML "+f.attributes.cbml,sub:"Lote catastral · "+Math.round(f.attributes.area_lote||0)+" m²",geom:f.geometry,orden:0})})}).catch(function(){}));
+if(t.length>=3&&!/^\d+$/.test(t))ps.push(fetch(BARRIOS+"/query?f=json&outFields=nombre&returnGeometry=true&outSR=4326&maxAllowableOffset=0.00005&resultRecordCount=5&where="+encodeURIComponent("UPPER(nombre) LIKE '%"+t.toUpperCase().replace(/'/g,"")+"%'")).then(function(r){return r.json()}).then(function(j){(j.features||[]).forEach(function(f){out.push({t:f.attributes.nombre,sub:"Barrio o vereda",geom:f.geometry,orden:1})})}).catch(function(){}));
+if(R&&t.length>=3){var n=0;R.stops.forEach(function(s){if(n<5&&s[1].toLowerCase().indexOf(tt)>=0&&(s[4]===1||n<2)){n++;out.push({t:s[1],sub:s[4]===1?"Estación · Metro de Medellín":"Parada de bus",xy:[s[2],s[3]],orden:s[4]===1?1:3})}})}
+if(t.length>=3&&!/^\d+$/.test(t))ps.push(fetch(GEO+"suggest?f=json&maxSuggestions=5&countryCode=COL&location=-75.57,6.25&searchExtent="+encodeURIComponent(JSON.stringify({xmin:-75.72,ymin:6.12,xmax:-75.43,ymax:6.40,spatialReference:{wkid:4326}}))+"&text="+encodeURIComponent(t+", Medellín")).then(function(r){return r.json()}).then(function(j){(j.suggestions||[]).forEach(function(s){out.push({t:s.text,sub:"Dirección o lugar",mk:s.magicKey,orden:2})})}).catch(function(){}));
+return Promise.all(ps).then(function(){return out.sort(function(a,b){return a.orden-b.orden})})}
+function resolver(o){if(o.xy)return Promise.resolve({xy:o.xy});if(o.geom){var g=o.geom,xs=[],ys=[];(g.rings||[]).forEach(function(r){r.forEach(function(p){xs.push(p[0]);ys.push(p[1])})});return Promise.resolve({xy:[(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2,(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2],geom:g})}
+return fetch(GEO+"findAddressCandidates?f=json&outSR=4326&maxLocations=1&magicKey="+o.mk+"&SingleLine="+encodeURIComponent(o.t)).then(function(r){return r.json()}).then(function(c){var x=c.candidates&&c.candidates[0];return x?{xy:[x.location.x,x.location.y]}:null})}
+function caja(inp,box,alElegir){var tm;inp.oninput=function(){clearTimeout(tm);var t=inp.value.trim();if(t.length<3&&!/^\d{4,}$/.test(t)){box.style.display="none";return}tm=setTimeout(function(){sugerencias(t).then(function(l){box.innerHTML="";l.slice(0,12).forEach(function(o){var d=document.createElement("div");d.innerHTML=o.t+"<br><span>"+o.sub+"</span>";d.onclick=function(){box.style.display="none";resolver(o).then(function(r){if(r)alElegir(o,r)})};box.appendChild(d)});box.style.display=l.length?"block":"none"})},300)};
+inp.onblur=function(){setTimeout(function(){box.style.display="none"},250)}}
+function resaltar(r,txt){gh.removeAll();if(r.geom){gh.add(new G({geometry:{type:"polygon",rings:r.geom.rings,spatialReference:{wkid:4326}},symbol:{type:"simple-fill",color:[0,184,212,.18],outline:{color:[0,229,255],width:2.5}}}));V.goTo({target:gh.graphics.getItemAt(0).geometry.extent.expand(1.6)}).catch(function(){})}
+else{gh.add(new G({geometry:new Point({longitude:r.xy[0],latitude:r.xy[1]}),symbol:{type:"simple-marker",size:14,color:[0,229,255,.5],outline:{color:[0,229,255],width:2}}}));V.goTo({center:r.xy,zoom:16}).catch(function(){})}
+aviso(txt+" · use ◎ / ⌖ o escríbalo en A o B para planear un viaje",5000)}
+caja($("qb"),$("sb"),function(o,r){resaltar(r,o.t)});
+/* ---------- planificador ---------- */
 function marca(k,xy,txt){pts[k]=xy;$(k).value=txt;gm.graphics.filter(function(g){return g.attributes&&g.attributes.k===k}).forEach(function(g){gm.remove(g)});
 gm.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),attributes:{k:k},symbol:{type:"simple-marker",size:16,color:k==="o"?"#3cb44b":"#e6194b",outline:{color:"#fff",width:2}}}));
 gm.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),attributes:{k:k},symbol:{type:"text",text:k==="o"?"A":"B",color:"#fff",font:{size:9,weight:"bold"}}}))}
-/* sugerencias: estaciones y paradas locales + geocodificador mundial de Esri (búsqueda sin almacenamiento) */
-function sug(k){var inp=$(k),box=$("s"+k),tm;inp.oninput=function(){clearTimeout(tm);var t=inp.value.trim();if(t.length<3){box.style.display="none";return}tm=setTimeout(function(){var loc=[];if(R){var tt=t.toLowerCase();R.stops.forEach(function(s,i){if(s[1].toLowerCase().indexOf(tt)>=0&&loc.length<6&&(s[4]===1||loc.length<3))loc.push({t:s[1],sub:s[4]===1?"Estación · Metro de Medellín":"Parada de bus",xy:[s[2],s[3]]})})}
-fetch(GEO+"suggest?f=json&maxSuggestions=6&countryCode=COL&location=-75.57,6.25&searchExtent="+encodeURIComponent(JSON.stringify({xmin:-75.72,ymin:6.12,xmax:-75.43,ymax:6.40,spatialReference:{wkid:4326}}))+"&text="+encodeURIComponent(t+", Medellín")).then(function(r){return r.json()}).catch(function(){return{suggestions:[]}}).then(function(j){
-box.innerHTML="";loc.concat((j.suggestions||[]).map(function(s){return{t:s.text,sub:"Dirección o lugar",mk:s.magicKey}})).forEach(function(o){var d=document.createElement("div");d.innerHTML=o.t+"<br><span>"+o.sub+"</span>";d.onclick=function(){box.style.display="none";if(o.xy){marca(k,o.xy,o.t);plan()}else fetch(GEO+"findAddressCandidates?f=json&outSR=4326&maxLocations=1&magicKey="+o.mk+"&SingleLine="+encodeURIComponent(o.t)).then(function(r){return r.json()}).then(function(c){var x=c.candidates&&c.candidates[0];if(x){marca(k,[x.location.x,x.location.y],o.t);plan()}})};box.appendChild(d)});box.style.display=box.children.length?"block":"none"})},300)}}
-sug("o");sug("d");
-["o","d"].forEach(function(k){$("p"+k).onclick=function(){modoPin=modoPin===k?null:k;$("po").classList.toggle("on",modoPin==="o");$("pd").classList.toggle("on",modoPin==="d")}});
+caja($("o"),$("so"),function(o,r){marca("o",r.xy,o.t);plan()});caja($("d"),$("sd"),function(o,r){marca("d",r.xy,o.t);plan()});
+["o","d"].forEach(function(k){$("p"+k).onclick=function(){modoPin=modoPin===k?null:k;$("po").classList.toggle("on",modoPin==="o");$("pd").classList.toggle("on",modoPin==="d");if(modoPin)aviso("Haga clic en el mapa para marcar "+(k==="o"?"el origen":"el destino"),4000)};
+$("go_"+k).onclick=function(){ubicar(function(xy){marca(k,xy,"Mi ubicación");V.goTo({center:xy,zoom:16}).catch(function(){});plan()})}});
 $("go").onclick=plan;$("u").onchange=plan;
-function miUbicacion(k){var m=$("msg");if(!navigator.geolocation){m.textContent="Este navegador no permite conocer la ubicación.";return}
-m.textContent="Buscando su ubicación…";navigator.geolocation.getCurrentPosition(function(pos){var xy=[pos.coords.longitude,pos.coords.latitude];
-if(Planner.dist(xy,[-75.57,6.25])>40000){m.textContent="Su ubicación está fuera del Valle de Aburrá; márquela en el mapa o escriba una dirección.";return}
-m.textContent="Ubicación encontrada (precisión ±"+Math.round(pos.coords.accuracy)+" m).";marca(k,xy,"Mi ubicación");v.goTo({center:xy,zoom:15});plan()},
-function(e){m.textContent=e.code===1?"Permiso de ubicación denegado. Actívelo en el candado de la barra de direcciones del navegador.":"No se pudo obtener la ubicación ("+e.message+")."},{enableHighAccuracy:true,timeout:15000,maximumAge:60000})}
-$("go_o").onclick=function(){miUbicacion("o")};$("go_d").onclick=function(){miUbicacion("d")};
-$("sw").onclick=function(){var a=pts.o,b=pts.d,ta=$("o").value,tb=$("d").value;gm.removeAll();pts.o=pts.d=null;if(b)marca("o",b,tb);if(a)marca("d",a,ta);plan()};
-function plan(){if(!R||!pts.o||!pts.d)return;res=Planner.planear(R,pts.o,pts.d,$("u").value);var box=$("res");box.innerHTML="";
+$("sw").onclick=function(){var a=pts.o,b=pts.d,ta=$("o").value,tb=$("d").value;gm.graphics.filter(function(g){return g.attributes&&(g.attributes.k==="o"||g.attributes.k==="d")}).forEach(function(g){gm.remove(g)});pts.o=pts.d=null;$("o").value=$("d").value="";if(b)marca("o",b,tb);if(a)marca("d",a,ta);plan()};
+function plan(){if(!R){aviso("Cargando la red de transporte…",2000);return}if(!pts.o||!pts.d)return;res=Planner.planear(R,pts.o,pts.d,$("u").value);var box=$("res");box.innerHTML="";
 if(!res.length){box.innerHTML='<div class="op">No se encontró un recorrido con transporte público cerca de estos puntos.</div>';return}
 res.forEach(function(it,k){var d=document.createElement("div");d.className="op";var chips=it.tramos.filter(function(t){return t.tipo==="viaje"}).map(function(t){var p=R.pats[t.pat];return '<span class="chip" style="background:'+(p.col||CMODO[p.m])+'">'+MODO[p.m]+" "+p.c+"</span>"}).join(" › ");
 d.innerHTML="<b>"+Math.round(it.min)+" min</b> · "+fmt(it.tarifa.total)+' <span class="mini">· '+(it.aPie?"solo a pie":it.transbordos+" transbordo(s)")+'</span><div class="chips">'+(chips||'<span class="chip" style="background:#666">A pie</span>')+"</div>";
 d.onclick=function(){[].forEach.call(box.querySelectorAll(".op"),function(x){x.classList.remove("on")});d.classList.add("on");dibujar(it,d)};box.appendChild(d);if(k===0)d.click()})}
 function nombre(i){return i==="destino"?"su destino":(i<0?"el origen":R.stops[i][1])}
-function trozo(p,a,b){var ka=p.k,where="route_key='"+ka+"'";return rut.queryFeatures({where:where,outFields:["*"],returnGeometry:true,outSpatialReference:{wkid:4326}}).then(function(r){var best=null;r.features.forEach(function(f){var vs=[];f.geometry.paths.forEach(function(pa){vs=vs.concat(pa)});var ia=-1,ib=-1,da=1e9,db=1e9;vs.forEach(function(q,i){var x=Planner.dist(q,a),y=Planner.dist(q,b);if(x<da){da=x;ia=i}if(y<db){db=y;ib=i}});if(ia<ib&&da<250&&db<250&&(!best||da+db<best.e))best={e:da+db,v:vs.slice(ia,ib+1)}});return best?best.v:null}).catch(function(){return null})}
-function dibujar(it,box){gr.removeAll();gp.removeAll();var det=document.createElement("div"),ext=[];var prev=box.nextSibling;if(prev&&prev.className==="det")prev.remove();det.className="det";
-var ps=[];it.tramos.forEach(function(t){var a=t.desde<0?pts.o:R.xy[t.desde],b=t.hasta==="destino"?pts.d:R.xy[t.hasta];ext.push(a,b);
-if(t.tipo==="camina"){gr.add(new G({geometry:new Polyline({paths:[[a,b]],spatialReference:{wkid:4326}}),symbol:{type:"simple-line",color:[255,255,255,.9],width:2,style:"short-dot"}}));
+function trozo(p,a,b){return rut.queryFeatures({where:"route_key='"+p.k+"'",outFields:["*"],returnGeometry:true,outSpatialReference:{wkid:4326}}).then(function(r){var best=null;r.features.forEach(function(f){var vs=[];f.geometry.paths.forEach(function(pa){vs=vs.concat(pa)});var ia=-1,ib=-1,da=1e9,db=1e9;vs.forEach(function(q,i){var x=Planner.dist(q,a),y=Planner.dist(q,b);if(x<da){da=x;ia=i}if(y<db){db=y;ib=i}});if(ia<ib&&da<250&&db<250&&(!best||da+db<best.e))best={e:da+db,v:vs.slice(ia,ib+1)}});return best?best.v:null}).catch(function(){return null})}
+function dibujar(it,box){gr.removeAll();gp.removeAll();var det=document.createElement("div"),ext=[];var nx=box.nextSibling;if(nx&&nx.className==="det")nx.remove();det.className="det";
+it.tramos.forEach(function(t){var a=t.desde<0?pts.o:R.xy[t.desde],b=t.hasta==="destino"?pts.d:R.xy[t.hasta];ext.push(a,b);
+if(t.tipo==="camina"){gr.add(new G({geometry:new Polyline({paths:[[a,b]],spatialReference:{wkid:4326}}),symbol:{type:"simple-line",color:document.body.classList.contains("claro")?[60,60,60,.9]:[255,255,255,.9],width:2,style:"short-dot"}}));
 det.innerHTML+='<div class="leg" style="border-color:#888"><div>🚶 Camine '+Math.round(t.dist*1.3)+" m hasta "+nombre(t.hasta)+"<span>"+Math.max(1,Math.round(t.min))+" min</span></div></div>"}
 else{var p=R.pats[t.pat],c=p.col||CMODO[p.m],seq=p.p.slice(t.i,t.j+1).map(function(s){return R.xy[s]});
 seq.forEach(function(q,qi){gp.add(new G({geometry:new Point({longitude:q[0],latitude:q[1]}),symbol:{type:"simple-marker",size:qi===0||qi===seq.length-1?9:5,color:c,outline:{color:"#fff",width:1}}}))});
 var g=new G({geometry:new Polyline({paths:[seq],spatialReference:{wkid:4326}}),symbol:{type:"simple-line",color:c,width:5}});gr.add(g);
-ps.push(trozo(p,a,b).then(function(vs){if(vs&&vs.length>1)g.geometry=new Polyline({paths:[vs],spatialReference:{wkid:4326}})}));
+trozo(p,a,b).then(function(vs){if(vs&&vs.length>1)g.geometry=new Polyline({paths:[vs],spatialReference:{wkid:4326}})});
 det.innerHTML+='<div class="leg" style="border-color:'+c+'"><div><b>'+MODO[p.m]+" "+p.c+"</b> · "+p.n+"<span>Suba en "+nombre(t.desde)+" y baje en "+nombre(t.hasta)+" · "+t.paradas+" paradas · "+Math.round(t.min)+" min (incluye espera)"+(p.s?" · sentido "+p.s:"")+"</span></div></div>"}});
 det.innerHTML+='<div class="leg" style="border-color:#555"><div>Tarifa estimada: <b>'+fmt(it.tarifa.total)+"</b><span>"+it.tarifa.detalle.join("<br>")+"</span></div></div>";box.after(det);
-v.goTo(new Polyline({paths:[ext],spatialReference:{wkid:4326}}).extent.expand(1.3))}
-/* ------- explorar rutas (clic en parada o ruta) ------- */
+V.goTo(new Polyline({paths:[ext],spatialReference:{wkid:4326}}).extent.expand(1.3)).catch(function(){})}
+/* ---------- explorar rutas y paradas cercanas ---------- */
 var L=$("l"),T=$("t"),S=$("s");
 function lista(fs,tit,sub){T.textContent=tit;S.textContent=sub;L.innerHTML="";fs.forEach(function(f,i){var a=f.attributes,d=document.createElement("div");d.className="r";d.innerHTML='<div class="c" style="background:'+col(a,i)+'"></div><div><b>'+a.codigo+" · "+a.nombre+"</b><span>"+(a.sistema||"")+(a.empresa?" · "+a.empresa:"")+(a.sentido?" · hacia "+a.sentido:"")+"</span></div>";d.onclick=function(){[].forEach.call(L.children,function(x){x.classList.remove("on")});d.classList.add("on");unaRuta(f,i)};L.appendChild(d)})}
 function pintar(fs,ancho){gr.removeAll();fs.forEach(function(f,i){gr.add(new G({geometry:f.geometry,symbol:{type:"simple-line",color:col(f.attributes,i),width:ancho||3.5}}))})}
 function marcarParada(g){gp.removeAll();if(g)gp.add(new G({geometry:g,symbol:{type:"simple-marker",size:13,color:[255,255,255,0],outline:{color:[0,229,255],width:3}}}))}
 function porClaves(keys,tit,sub){if(!keys.length){lista([],tit,"Sin rutas asociadas.");gr.removeAll();return}
 rut.queryFeatures({where:"route_key IN ('"+keys.join("','")+"')",outFields:["*"],returnGeometry:true}).then(function(r){var fs=r.features.sort(function(a,b){return a.attributes.codigo<b.attributes.codigo?-1:1});pintar(fs);lista(fs,tit,fs.length+" ruta(s) · "+sub)})}
-function unaRuta(f,i){pintar([f],5);var k=f.attributes.route_key;par.queryFeatures({where:"rutas LIKE '%;"+k+";%'",returnGeometry:true}).then(function(r){gp.removeAll();r.features.forEach(function(s){gp.add(new G({geometry:s.geometry,symbol:{type:"simple-marker",size:7,color:col(f.attributes,i),outline:{color:"#fff",width:1}}}))});S.textContent=f.attributes.codigo+" · "+r.features.length+" paradas"});v.goTo(f.geometry.extent.expand(1.2))}
-v.on("click",function(e){if(modoPin){var k=modoPin;modoPin=null;$("po").classList.remove("on");$("pd").classList.remove("on");marca(k,[e.mapPoint.longitude,e.mapPoint.latitude],"Punto marcado en el mapa");plan();return}
+function unaRuta(f,i){pintar([f],5);var k=f.attributes.route_key;par.queryFeatures({where:"rutas LIKE '%;"+k+";%'",returnGeometry:true}).then(function(r){gp.removeAll();r.features.forEach(function(s){gp.add(new G({geometry:s.geometry,symbol:{type:"simple-marker",size:7,color:col(f.attributes,i),outline:{color:"#fff",width:1}}}))});S.textContent=f.attributes.codigo+" · "+r.features.length+" paradas"});V.goTo(f.geometry.extent.expand(1.2)).catch(function(){})}
+function rutasDeParada(i){var ks={};R.porParada[i].forEach(function(q){ks[R.pats[q[0]].k]=1});return Object.keys(ks)}
+function cercanas(xy){if(!R)return;var cs=R.cerca(xy,300).sort(function(a,b){return a[1]-b[1]});gh.removeAll();gr.removeAll();gp.removeAll();
+gh.add(new G({geometry:new Circle({center:new Point({longitude:xy[0],latitude:xy[1]}),radius:300,radiusUnit:"meters",geodesic:true}),symbol:{type:"simple-fill",color:[0,184,212,.1],outline:{color:[0,229,255],width:1.5,style:"dash"}}}));
+gh.add(new G({geometry:new Point({longitude:xy[0],latitude:xy[1]}),symbol:{type:"simple-marker",size:12,color:"#1a73e8",outline:{color:"#fff",width:2}}}));
+V.goTo({center:xy,zoom:16}).catch(function(){});T.textContent="Paradas cerca de usted";S.textContent=cs.length?cs.length+" parada(s) a menos de 300 m · clic para ver sus rutas":"No hay paradas a menos de 300 m.";L.innerHTML="";
+cs.forEach(function(c){var s=R.stops[c[0]],ks=rutasDeParada(c[0]),d=document.createElement("div");d.className="r";
+d.innerHTML='<div class="c" style="background:'+(s[4]===1?"#0054A4":"#f58231")+'"></div><div><b>'+s[1]+"</b><span>"+Math.round(c[1])+" m · "+(s[4]===1?"Estación":"Parada de bus")+" · "+ks.length+" ruta(s): "+ks.map(function(k){return k.split(":")[1].replace("MM-","")}).slice(0,8).join(", ")+"</span></div>";
+d.onclick=function(){var g=new Point({longitude:s[2],latitude:s[3]});marcarParada(g);porClaves(ks,s[1],Math.round(c[1])+" m de usted")};L.appendChild(d)})}
+$("cerca_b").onclick=function(){ubicar(cercanas)};
+function enganchar(view){view.on("click",function(e){var xy=[e.mapPoint.longitude,e.mapPoint.latitude];
+if(modoCalle){modoCalle=false;peg.classList.remove("on");calle(xy);return}
+if(modoPin){var k=modoPin;modoPin=null;$("po").classList.remove("on");$("pd").classList.remove("on");marca(k,xy,"Punto marcado en el mapa");plan();return}
 if(!$("exp").classList.contains("on"))return;
-v.hitTest(e,{include:[par,rut]}).then(function(h){var p=h.results.filter(function(x){return x.graphic.layer===par})[0],r=h.results.filter(function(x){return x.graphic.layer===rut})[0];
+view.hitTest(e,{include:[par,rut]}).then(function(h){var p=h.results.filter(function(x){return x.graphic.layer===par})[0],r=h.results.filter(function(x){return x.graphic.layer===rut})[0];
 if(p){var a=p.graphic.attributes;marcarParada(p.graphic.geometry);porClaves((a.rutas||"").split(";").filter(Boolean),a.nombre||"Parada",a.sistema)}
-else if(r){marcarParada();rut.queryFeatures({objectIds:[r.graphic.getObjectId()],outFields:["*"],returnGeometry:true}).then(function(q){lista(q.features,"Ruta","Clic para ver sus paradas");unaRuta(q.features[0],0);L.firstChild.classList.add("on")})}})});
+else if(r){marcarParada();rut.queryFeatures({objectIds:[r.graphic.getObjectId()],outFields:["*"],returnGeometry:true}).then(function(q){lista(q.features,"Ruta","Clic para ver sus paradas");unaRuta(q.features[0],0);L.firstChild.classList.add("on")})}})})}
+enganchar(mv);
 var tm;$("q").oninput=function(e){clearTimeout(tm);var s=e.target.value.trim().replace(/'/g,"");tm=setTimeout(function(){if(s.length<2)return;var S2=s.toUpperCase();rut.queryFeatures({where:"UPPER(codigo) LIKE '%"+S2+"%' OR UPPER(nombre) LIKE '%"+S2+"%' OR UPPER(empresa) LIKE '%"+S2+"%'",outFields:["*"],returnGeometry:true,num:60}).then(function(r){marcarParada();pintar(r.features);lista(r.features,"Búsqueda: "+s,r.features.length+" ruta(s)")})},350)};
 });
 </script></body></html>
